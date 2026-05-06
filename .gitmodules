@@ -1,0 +1,6 @@
+[submodule "include/GtkmmComponents"]
+	path = include/GtkmmComponents
+	url = https://gertechchapeco.visualstudio.com/WeimachPlus/_git/GtkmmComponents
+[submodule "include/Crow"]
+	path = include/Crow
+	url = https://github.com/CrowCpp/Crow.git

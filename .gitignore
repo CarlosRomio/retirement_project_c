@@ -1,0 +1,9 @@
+build/
+build-linux/
+.cache/
+build-arm/
+logs/
+build-arm-tdx/
+.vs/
+.vscode/
+TODO
