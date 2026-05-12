@@ -26,7 +26,6 @@ load_system()
 # Gather source files
 file(GLOB_RECURSE SRC_FILES
     ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/include/crowlib/*
 )
 
 # Exclude build and CMake-specific files
@@ -71,3 +70,9 @@ if(CMAKE_BUILD_TYPE MATCHES "Release|MinSizeRel")
                        COMMAND ${CMAKE_STRIP} $<TARGET_FILE:${PROJECT_NAME}>
                        COMMENT "Stripping symbols from ${PROJECT_NAME}...")
 endif()
+
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(PQXX REQUIRED libpqxx)
+
+target_include_directories(${PROJECT_NAME} PRIVATE ${PQXX_INCLUDE_DIRS})
+target_link_libraries(${PROJECT_NAME} PRIVATE ${PQXX_LIBRARIES})
