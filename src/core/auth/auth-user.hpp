@@ -3,5 +3,4 @@
 
 struct AuthUser {
     std::string id;
-    std::string email;
 };

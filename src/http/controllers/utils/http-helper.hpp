@@ -45,14 +45,10 @@ namespace auth {
         auto user = AuthExtractor::extract(req);
 
         if (user.id.empty()) {
-            callback(responses::unauthorized("Missing authentication headers"));
+            callback(responses::unauthorized("Missing x-user-id header"));
             return std::nullopt;
         }
 
         return user;
-    }
-
-    inline AuthUser getAuthUser(const drogon::HttpRequestPtr& req) {
-        return req->attributes()->get<AuthUser>("authUser");
     }
 }

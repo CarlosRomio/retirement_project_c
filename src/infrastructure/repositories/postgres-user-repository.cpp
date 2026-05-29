@@ -17,6 +17,9 @@ void PostgresUserRepository::save(const User& user) {
 
         txn.commit();
     }
+    catch (const pqxx::unique_violation&) {
+        throw std::runtime_error("User with this email already exists");
+    }
     catch (const pqxx::sql_error& e) {
         throw std::runtime_error(std::string("Database error: ") + e.what());
     }

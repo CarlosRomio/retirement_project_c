@@ -28,9 +28,22 @@ void UserController::create(
             return;
         }
 
+        const auto name = (*json)["name"].asString();
+        const auto email = (*json)["email"].asString();
+
+        if (name.empty()) {
+            callback(responses::badRequest("Name cannot be empty"));
+            return;
+        }
+
+        if (email.empty()) {
+            callback(responses::badRequest("Email cannot be empty"));
+            return;
+        }
+
         CreateUserInput input;
-        input.name = (*json)["name"].asString();
-        input.email = (*json)["email"].asString();
+        input.name = name;
+        input.email = email;
 
         auto result = context.createUserUseCase.execute(input);
 
@@ -43,6 +56,9 @@ void UserController::create(
     }
     catch (const std::invalid_argument& e) {
         callback(responses::badRequest(e.what()));
+    }
+    catch (const std::runtime_error& e) {
+        callback(responses::conflict(e.what()));
     }
     catch (const std::exception&) {
         callback(responses::internalServerError());
