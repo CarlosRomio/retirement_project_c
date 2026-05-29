@@ -9,7 +9,7 @@ private:
     IUserRepository* userRepository;
 
 public:
-    CreateUserUseCase(IUserRepository* repo);
+    CreateUserUseCase(IUserRepository& repo);
 
     CreateUserOutput execute(const CreateUserInput& input);
 };
