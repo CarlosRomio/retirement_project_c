@@ -6,8 +6,8 @@
       "displayName": "Linux Debug",
       "description": "Target Linux with GCC (Debug)",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/out/build/${presetName}",
-      "installDir": "${sourceDir}/out/install/${presetName}",
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install/${presetName}",
       "cacheVariables": {
         "CMAKE_C_COMPILER": "gcc",
         "CMAKE_CXX_COMPILER": "g++",
@@ -15,9 +15,9 @@
       },
       "vendor": {
         "microsoft.com/VisualStudioRemoteSettings/CMake/1.0": {
-          "sourceDir": "/weimach/project/atualizador_cpp",
-          "buildRoot": "/weimach/project/atualizador_cpp/build/${presetName}",
-          "installRoot": "/weimach/project/atualizador_cpp/install/${presetName}",
+          "sourceDir": "/weimach/project/retirement_project",
+          "buildRoot": "/weimach/project/retirement_project/build/${presetName}",
+          "installRoot": "/weimach/project/retirement_project/install/${presetName}",
           "copySources": true,
           "copySourcesOptions": {
             "exclusionList": [
