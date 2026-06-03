@@ -6,4 +6,5 @@ logs/
 build-arm-tdx/
 .vs/
 .vscode/
+.github/
 TODO
