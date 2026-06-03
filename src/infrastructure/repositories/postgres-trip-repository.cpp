@@ -11,10 +11,10 @@ Trip PostgresTripRepository::save(const Trip& trip) {
 
 	try {
 		auto tripResult = txn.exec_params(
-			"INSERT INTO trips (id, name, task_id) VALUES ($1, $2, $3) RETURNING created_at",
+			"INSERT INTO trips (id, name, owner_user_id) VALUES ($1, $2, $3) RETURNING created_at",
 			trip.get_id(),
 			trip.get_name(),
-			trip.get_task_id()
+			trip.get_owner_user_id()
 		);
 
 		for (const auto& userId : trip.get_user_ids()) {
@@ -25,13 +25,22 @@ Trip PostgresTripRepository::save(const Trip& trip) {
 			);
 		}
 
+		for (const auto& taskId : trip.get_task_ids()) {
+			txn.exec_params(
+				"INSERT INTO trip_tasks (trip_id, task_id) VALUES ($1, $2)",
+				trip.get_id(),
+				taskId
+			);
+		}
+
 		txn.commit();
 
 		return Trip(
 			trip.get_id(),
 			trip.get_name(),
 			tripResult[0]["created_at"].c_str(),
-			trip.get_task_id(),
+			trip.get_owner_user_id(),
+			trip.get_task_ids(),
 			trip.get_user_ids()
 		);
 	}
@@ -39,7 +48,7 @@ Trip PostgresTripRepository::save(const Trip& trip) {
 		throw std::runtime_error("Trip with this id already exists");
 	}
 	catch (const pqxx::foreign_key_violation&) {
-		throw std::runtime_error("Invalid task_id or user_id in trip_users");
+		throw std::runtime_error("Invalid owner_user_id, task_ids or user_ids");
 	}
 	catch (const pqxx::sql_error& e) {
 		throw std::runtime_error(std::string("Database error: ") + e.what());
@@ -51,7 +60,7 @@ std::optional<Trip> PostgresTripRepository::findById(const std::string& id) {
 		pqxx::work txn(db.get());
 
 		auto tripResult = txn.exec_params(
-			"SELECT id, name, created_at, task_id FROM trips WHERE id = $1",
+			"SELECT id, name, created_at, owner_user_id FROM trips WHERE id = $1",
 			id
 		);
 
@@ -71,18 +80,26 @@ std::optional<Trip> PostgresTripRepository::findById(const std::string& id) {
 			userIds.emplace_back(row["user_id"].c_str());
 		}
 
-		const auto& row = tripResult[0];
-		std::optional<std::string> taskId = std::nullopt;
+		auto tasksResult = txn.exec_params(
+			"SELECT task_id FROM trip_tasks WHERE trip_id = $1 ORDER BY task_id",
+			id
+		);
 
-		if (!row["task_id"].is_null()) {
-			taskId = row["task_id"].c_str();
+		std::vector<std::string> taskIds;
+		taskIds.reserve(tasksResult.size());
+
+		for (const auto& row : tasksResult) {
+			taskIds.emplace_back(row["task_id"].c_str());
 		}
+
+		const auto& row = tripResult[0];
 
 		return Trip(
 			row["id"].c_str(),
 			row["name"].c_str(),
 			row["created_at"].c_str(),
-			taskId,
+			row["owner_user_id"].is_null() ? "" : row["owner_user_id"].c_str(),
+			std::move(taskIds),
 			std::move(userIds)
 		);
 	}

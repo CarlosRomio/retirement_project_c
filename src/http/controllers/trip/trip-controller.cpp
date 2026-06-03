@@ -24,18 +24,32 @@ void TripController::create(
 			return;
 		}
 
+		if (!json->isMember("owner_user_id")) {
+			callback(responses::badRequest("Missing owner_user_id"));
+			return;
+		}
+
 		const auto name = (*json)["name"].asString();
+		const auto ownerUserId = (*json)["owner_user_id"].asString();
 
 		if (name.empty()) {
 			callback(responses::badRequest("Name cannot be empty"));
 			return;
 		}
 
+		if (ownerUserId.empty()) {
+			callback(responses::badRequest("Owner user id cannot be empty"));
+			return;
+		}
+
 		CreateTripInput input;
 		input.name = name;
+		input.owner_user_id = ownerUserId;
 
-		if (json->isMember("task_id") && !(*json)["task_id"].isNull()) {
-			input.task_id = (*json)["task_id"].asString();
+		if (json->isMember("task_ids") && (*json)["task_ids"].isArray()) {
+			for (const auto& taskId : (*json)["task_ids"]) {
+				input.task_ids.push_back(taskId.asString());
+			}
 		}
 
 		if (json->isMember("user_ids") && (*json)["user_ids"].isArray()) {
@@ -84,20 +98,18 @@ void TripController::getById(
 		res["id"] = trip.id;
 		res["name"] = trip.name;
 		res["created_at"] = trip.created_at;
+		res["owner_user_id"] = trip.owner_user_id;
 
-		if (trip.task_id.has_value()) {
-			res["task_id"] = *trip.task_id;
+		Json::Value tasks(Json::arrayValue);
+		for (const auto& taskId : trip.task_ids) {
+			tasks.append(taskId);
 		}
-		else {
-			res["task_id"] = Json::nullValue;
-		}
+		res["task_ids"] = tasks;
 
 		Json::Value users(Json::arrayValue);
-
 		for (const auto& userId : trip.user_ids) {
 			users.append(userId);
 		}
-
 		res["user_ids"] = users;
 
 		callback(drogon::HttpResponse::newHttpJsonResponse(res));

@@ -30,7 +30,8 @@ CreateTripOutput CreateTripUseCase::execute(const CreateTripInput& input) {
 		generateTripId(),
 		input.name,
 		"",
-		input.task_id,
+		input.owner_user_id,
+		input.task_ids,
 		input.user_ids
 	);
 

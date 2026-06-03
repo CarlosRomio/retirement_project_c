@@ -18,7 +18,8 @@ std::optional<GetTripOutput> GetTripUseCase::execute(const std::string& id) {
 		trip.get_id(),
 		trip.get_name(),
 		trip.get_created_at(),
-		trip.get_task_id(),
+		trip.get_owner_user_id(),
+		trip.get_task_ids(),
 		trip.get_user_ids()
 	};
 }
