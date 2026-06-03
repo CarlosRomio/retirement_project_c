@@ -2,6 +2,10 @@
 
 AppContext::AppContext(const std::string& conn_str)
     : db(conn_str),
-    userRepository(db),
-    createUserUseCase(userRepository)
+      userRepository(db),
+      tripRepository(db),
+      createUserUseCase(userRepository),
+      createTripUseCase(tripRepository),
+      getTripUseCase(tripRepository),
+      deleteTripUseCase(tripRepository)
 {}
