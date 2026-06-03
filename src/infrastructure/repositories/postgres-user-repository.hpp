@@ -14,5 +14,7 @@ public:
 
     void save(const User& user) override;
     std::optional<User> findById(const std::string& id) override;
+    std::optional<User> findByEmail(const std::string& email) override;
     void update(const User& user) override;
+    bool emailExists(const std::string& email) override;
 };

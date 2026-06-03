@@ -9,5 +9,6 @@ public:
 	virtual Task save(const Task& task) = 0;
 	virtual std::optional<Task> findById(const std::string& id) = 0;
 	virtual bool removeById(const std::string& id) = 0;
+	virtual bool isOwner(const std::string& task_id, const std::string& user_id) = 0;
 	virtual ~ITaskRepository() = default;
 };

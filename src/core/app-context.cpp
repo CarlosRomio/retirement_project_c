@@ -11,5 +11,7 @@ AppContext::AppContext(const std::string& conn_str)
       deleteTripUseCase(tripRepository),
       createTaskUseCase(taskRepository),
       getTaskUseCase(taskRepository),
-      deleteTaskUseCase(taskRepository)
+      deleteTaskUseCase(taskRepository),
+      loginUseCase(userRepository),
+      initializeAdminUseCase(userRepository)
 {}

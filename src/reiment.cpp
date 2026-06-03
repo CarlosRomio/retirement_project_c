@@ -16,18 +16,20 @@ int main(int argc, char* argv[]) {
 	std::cout << "Rodando migrations...\n";
 	std::string path = MIGRATIONS_PATH;
 
-    if (!std::filesystem::exists(path)) {
-        path = "./migrations";
-    }
+	if (!std::filesystem::exists(path)) {
+		path = "./migrations";
+	}
 
-    MigrationRunner runner(path);
-    runner.run(context.db.get());
+	MigrationRunner runner(path);
+	runner.run(context.db.get());
 
-    std::cout << "Iniciando servidor web...\n";
-    WebServerService server(context);
+	std::cout << "Inicializando dados de seed (admin)...\n";
+	context.initializeAdminUseCase.ensureAdminExists();
 
-    server.start();
+	std::cout << "Iniciando servidor web...\n";
+	WebServerService server(context);
 
+	server.start();
 
-    return 0;
+	return 0;
 }
