@@ -120,3 +120,20 @@ bool PostgresTripRepository::removeById(const std::string& id) {
 
 	return res.affected_rows() > 0;
 }
+
+bool PostgresTripRepository::isOwner(const std::string& trip_id, const std::string& user_id) {
+	try {
+		pqxx::work txn(db.get());
+
+		auto result = txn.exec_params(
+			"SELECT 1 FROM trips WHERE id = $1 AND owner_user_id = $2",
+			trip_id,
+			user_id
+		);
+
+		return !result.empty();
+	}
+	catch (const pqxx::sql_error& e) {
+		throw std::runtime_error(std::string("Database error: ") + e.what());
+	}
+}

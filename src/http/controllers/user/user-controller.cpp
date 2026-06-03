@@ -2,6 +2,7 @@
 #include <stdexcept>
 
 #include "core/app-context-holder.hpp"
+#include "core/auth/auth-helpers.hpp"
 #include "http/controllers/utils/http-helper.hpp"
 
 UserController::UserController()
@@ -70,12 +71,9 @@ void UserController::me(
     std::function<void(const drogon::HttpResponsePtr&)>&& callback
 ) {
     try {
-        auto authUser = auth::requireAuth(req, callback);
-        if (!authUser) {
-            return;
-        }
+        AUTH_REQUIRE_AUTHENTICATED(req, callback);
 
-        auto userOpt = context.userRepository.findById(authUser->id);
+        auto userOpt = context.userRepository.findById(authCtx->user_id);
 
         if (!userOpt) {
             callback(responses::notFound("User not found"));
@@ -88,6 +86,7 @@ void UserController::me(
         res["id"] = user.get_id();
         res["name"] = user.get_name();
         res["email"] = user.get_email();
+        res["role"] = auth::roleToString(user.get_role());
 
         callback(drogon::HttpResponse::newHttpJsonResponse(res));
     }
@@ -101,10 +100,7 @@ void UserController::updateMe(
     std::function<void(const drogon::HttpResponsePtr&)>&& callback
 ) {
     try {
-        auto authUser = auth::requireAuth(req, callback);
-        if (!authUser) {
-            return;
-        }
+        AUTH_REQUIRE_AUTHENTICATED(req, callback);
 
         auto json = req->getJsonObject();
         if (!json) {
@@ -124,7 +120,7 @@ void UserController::updateMe(
             return;
         }
 
-        auto userOpt = context.userRepository.findById(authUser->id);
+        auto userOpt = context.userRepository.findById(authCtx->user_id);
 
         if (!userOpt) {
             callback(responses::notFound("User not found"));
@@ -140,6 +136,7 @@ void UserController::updateMe(
         res["id"] = user.get_id();
         res["name"] = user.get_name();
         res["email"] = user.get_email();
+        res["role"] = auth::roleToString(user.get_role());
 
         callback(drogon::HttpResponse::newHttpJsonResponse(res));
     }

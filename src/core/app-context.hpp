@@ -7,6 +7,8 @@
 #include "application/use-cases/delete-trip/delete-trip-use-case.hpp"
 #include "application/use-cases/get-task/get-task-use-case.hpp"
 #include "application/use-cases/get-trip/get-trip-use-case.hpp"
+#include "application/use-cases/login/login-use-case.hpp"
+#include "application/use-cases/initialize/initialize-admin-use-case.hpp"
 #include "database/connection/database-connection.hpp"
 #include "infrastructure/repositories/postgres-task-repository.hpp"
 #include "infrastructure/repositories/postgres-trip-repository.hpp"
@@ -27,6 +29,9 @@ public:
     CreateTaskUseCase createTaskUseCase;
     GetTaskUseCase getTaskUseCase;
     DeleteTaskUseCase deleteTaskUseCase;
+
+    LoginUseCase loginUseCase;
+    InitializeAdminUseCase initializeAdminUseCase;
 
     AppContext(const std::string& conn_str);
 };

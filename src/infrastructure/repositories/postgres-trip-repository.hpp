@@ -15,4 +15,5 @@ public:
 	Trip save(const Trip& trip) override;
 	std::optional<Trip> findById(const std::string& id) override;
 	bool removeById(const std::string& id) override;
+	bool isOwner(const std::string& trip_id, const std::string& user_id) override;
 };

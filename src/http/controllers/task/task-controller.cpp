@@ -3,6 +3,7 @@
 
 #include "application/use-cases/create-task/create-task-dto.hpp"
 #include "core/app-context-holder.hpp"
+#include "core/auth/auth-helpers.hpp"
 #include "http/controllers/utils/http-helper.hpp"
 
 TaskController::TaskController()
@@ -13,6 +14,10 @@ void TaskController::create(
 	std::function<void(const drogon::HttpResponsePtr&)>&& callback
 ) {
 	try {
+		// Requer autenticação e permissão para criar tarefa
+		AUTH_REQUIRE_AUTHENTICATED(req, callback);
+		AUTH_REQUIRE_PERMISSION(authCtx, auth::Permission::CREATE_TASK, callback);
+
 		auto json = req->getJsonObject();
 		if (!json) {
 			callback(responses::badRequest("Invalid JSON"));
@@ -21,11 +26,6 @@ void TaskController::create(
 
 		if (!json->isMember("trip_id")) {
 			callback(responses::badRequest("Missing trip_id"));
-			return;
-		}
-
-		if (!json->isMember("owner_user_id")) {
-			callback(responses::badRequest("Missing owner_user_id"));
 			return;
 		}
 
@@ -45,14 +45,13 @@ void TaskController::create(
 		}
 
 		const auto tripId = (*json)["trip_id"].asString();
-		const auto ownerUserId = (*json)["owner_user_id"].asString();
 		const auto name = (*json)["name"].asString();
 		const auto description = (*json)["description"].asString();
 		const auto credits = (*json)["credits"].asInt();
 
 		CreateTaskInput input;
 		input.trip_id = tripId;
-		input.owner_user_id = ownerUserId;
+		input.owner_user_id = authCtx->user_id;  // Owner é sempre o usuário autenticado
 		input.name = name;
 		input.description = description;
 		input.credits = credits;
@@ -94,6 +93,10 @@ void TaskController::getById(
 	const std::string& id
 ) {
 	try {
+		// Requer autenticação
+		AUTH_REQUIRE_AUTHENTICATED(req, callback);
+		AUTH_REQUIRE_PERMISSION(authCtx, auth::Permission::READ_TASK, callback);
+
 		auto taskOpt = context.getTaskUseCase.execute(id);
 
 		if (!taskOpt) {
@@ -131,6 +134,19 @@ void TaskController::remove(
 	const std::string& id
 ) {
 	try {
+		// Requer autenticação e permissão de delete
+		AUTH_REQUIRE_AUTHENTICATED(req, callback);
+		AUTH_REQUIRE_PERMISSION(authCtx, auth::Permission::DELETE_TASK, callback);
+
+		// Verifica se é owner da task ou admin
+		auto taskOpt = context.getTaskUseCase.execute(id);
+		if (!taskOpt) {
+			callback(responses::notFound("Task not found"));
+			return;
+		}
+
+		AUTH_REQUIRE_OWNERSHIP(authCtx, taskOpt->owner_user_id, callback);
+
 		const auto removed = context.deleteTaskUseCase.execute(id);
 
 		if (!removed) {

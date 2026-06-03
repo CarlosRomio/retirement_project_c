@@ -3,6 +3,7 @@
 
 #include "application/use-cases/create-trip/create-trip-dto.hpp"
 #include "core/app-context-holder.hpp"
+#include "core/auth/auth-helpers.hpp"
 #include "http/controllers/utils/http-helper.hpp"
 
 TripController::TripController()
@@ -13,6 +14,10 @@ void TripController::create(
 	std::function<void(const drogon::HttpResponsePtr&)>&& callback
 ) {
 	try {
+		// Requer autenticação e permissão para criar viagem
+		AUTH_REQUIRE_AUTHENTICATED(req, callback);
+		AUTH_REQUIRE_PERMISSION(authCtx, auth::Permission::CREATE_TRIP, callback);
+
 		auto json = req->getJsonObject();
 		if (!json) {
 			callback(responses::badRequest("Invalid JSON"));
@@ -24,27 +29,17 @@ void TripController::create(
 			return;
 		}
 
-		if (!json->isMember("owner_user_id")) {
-			callback(responses::badRequest("Missing owner_user_id"));
-			return;
-		}
-
 		const auto name = (*json)["name"].asString();
-		const auto ownerUserId = (*json)["owner_user_id"].asString();
 
 		if (name.empty()) {
 			callback(responses::badRequest("Name cannot be empty"));
 			return;
 		}
 
-		if (ownerUserId.empty()) {
-			callback(responses::badRequest("Owner user id cannot be empty"));
-			return;
-		}
-
+		// O owner_user_id é sempre o usuário autenticado
 		CreateTripInput input;
 		input.name = name;
-		input.owner_user_id = ownerUserId;
+		input.owner_user_id = authCtx->user_id;
 
 		if (json->isMember("task_ids") && (*json)["task_ids"].isArray()) {
 			for (const auto& taskId : (*json)["task_ids"]) {
@@ -85,6 +80,10 @@ void TripController::getById(
 	const std::string& id
 ) {
 	try {
+		// Requer autenticação
+		AUTH_REQUIRE_AUTHENTICATED(req, callback);
+		AUTH_REQUIRE_PERMISSION(authCtx, auth::Permission::READ_TRIP, callback);
+
 		auto tripOpt = context.getTripUseCase.execute(id);
 
 		if (!tripOpt) {
@@ -125,6 +124,19 @@ void TripController::remove(
 	const std::string& id
 ) {
 	try {
+		// Requer autenticação e permissão de delete
+		AUTH_REQUIRE_AUTHENTICATED(req, callback);
+		AUTH_REQUIRE_PERMISSION(authCtx, auth::Permission::DELETE_TRIP, callback);
+
+		// Verifica se é owner da trip ou admin
+		auto tripOpt = context.getTripUseCase.execute(id);
+		if (!tripOpt) {
+			callback(responses::notFound("Trip not found"));
+			return;
+		}
+
+		AUTH_REQUIRE_OWNERSHIP(authCtx, tripOpt->owner_user_id, callback);
+
 		const auto removed = context.deleteTripUseCase.execute(id);
 
 		if (!removed) {
