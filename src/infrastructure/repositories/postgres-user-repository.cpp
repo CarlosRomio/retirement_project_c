@@ -51,6 +51,32 @@ std::optional<User> PostgresUserRepository::findById(const std::string& id) {
     }
 }
 
+std::optional<User> PostgresUserRepository::findByEmail(const std::string& email) {
+    try {
+        pqxx::work txn(db.get());
+
+        auto result = txn.exec_params(
+            "SELECT id, name, email FROM users WHERE email = $1",
+            email
+        );
+
+        if (result.empty()) {
+            return std::nullopt;
+        }
+
+        const auto& row = result[0];
+
+        return User(
+            row["id"].c_str(),
+            row["name"].c_str(),
+            row["email"].c_str()
+        );
+    }
+    catch (const pqxx::sql_error& e) {
+        throw std::runtime_error(std::string("Database error: ") + e.what());
+    }
+}
+
 void PostgresUserRepository::update(const User& user) {
     pqxx::work txn(db.get());
 
