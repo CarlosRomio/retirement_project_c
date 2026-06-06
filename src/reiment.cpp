@@ -1,4 +1,5 @@
 #include <iostream>
+#include <filesystem>
 
 #include "bootstrap/web-server-service.hpp"
 #include "core/app-context.hpp"

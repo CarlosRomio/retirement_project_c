@@ -16,7 +16,7 @@ namespace config {
 	inline std::string getDatabaseConnectionString() {
 		return getEnvOrDefault(
 			"DATABASE_URL",
-			"dbname=travelapp user=postgres password=12345678 host=172.20.0.1"
+			"dbname=retirement_db user=carlos password=12345678 host=localhost port=5432"
 		);
 	}
 }

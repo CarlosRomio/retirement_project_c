@@ -4,6 +4,7 @@
 #include "application/use-cases/create-task/create-task-dto.hpp"
 #include "core/app-context-holder.hpp"
 #include "http/controllers/utils/http-helper.hpp"
+#include "http/controllers/utils/logging.hpp"
 
 TaskController::TaskController()
 	: context(AppContextHolder::instance()) {}
@@ -12,6 +13,8 @@ void TaskController::create(
 	const drogon::HttpRequestPtr& req,
 	std::function<void(const drogon::HttpResponsePtr&)>&& callback
 ) {
+	logging::logRequest("POST", "/api/tasks");
+
 	try {
 		auto json = req->getJsonObject();
 		if (!json) {
@@ -93,6 +96,8 @@ void TaskController::getById(
 	std::function<void(const drogon::HttpResponsePtr&)>&& callback,
 	const std::string& id
 ) {
+	logging::logRequest("GET", "/api/tasks/" + id);
+
 	try {
 		auto taskOpt = context.getTaskUseCase.execute(id);
 
@@ -130,6 +135,8 @@ void TaskController::remove(
 	std::function<void(const drogon::HttpResponsePtr&)>&& callback,
 	const std::string& id
 ) {
+	logging::logRequest("DELETE", "/api/tasks/" + id);
+
 	try {
 		const auto removed = context.deleteTaskUseCase.execute(id);
 
@@ -145,4 +152,31 @@ void TaskController::remove(
 	catch (const std::exception&) {
 		callback(responses::internalServerError());
 	}
+}
+
+void TaskController::options(
+	const drogon::HttpRequestPtr& req,
+	std::function<void(const drogon::HttpResponsePtr&)>&& callback
+) {
+	auto resp = drogon::HttpResponse::newHttpResponse();
+	resp->setStatusCode(drogon::k200OK);
+	resp->addHeader("Access-Control-Allow-Origin", "*");
+	resp->addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+	resp->addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-user-id");
+	resp->addHeader("Access-Control-Max-Age", "86400");
+	callback(resp);
+}
+
+void TaskController::optionsById(
+	const drogon::HttpRequestPtr& req,
+	std::function<void(const drogon::HttpResponsePtr&)>&& callback,
+	const std::string& id
+) {
+	auto resp = drogon::HttpResponse::newHttpResponse();
+	resp->setStatusCode(drogon::k200OK);
+	resp->addHeader("Access-Control-Allow-Origin", "*");
+	resp->addHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS, PATCH");
+	resp->addHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, x-user-id");
+	resp->addHeader("Access-Control-Max-Age", "86400");
+	callback(resp);
 }
